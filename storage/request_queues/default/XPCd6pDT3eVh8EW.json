@@ -1,0 +1,15 @@
+{
+  "url": "https://codal.ir/Reports/Decision.aspx?LetterSerial=N11YvmoRYi%2bat2chUfzGVA%3d%3d&rt=3&let=19&ct=0&ft=-1",
+  "unique_key": "https://codal.ir/reports/decision.aspx?letterserial=n11yvmoryi%2bat2chufzgva%3d%3d&ct=0&ft=-1&let=19&rt=3",
+  "method": "GET",
+  "payload": null,
+  "headers": {},
+  "user_data": {},
+  "retry_count": 0,
+  "no_retry": false,
+  "loaded_url": null,
+  "handled_at": null,
+  "id": "XPCd6pDT3eVh8EW",
+  "json_": "{\n  \"url\": \"https://codal.ir/Reports/Decision.aspx?LetterSerial=N11YvmoRYi%2bat2chUfzGVA%3d%3d&rt=3&let=19&ct=0&ft=-1\",\n  \"unique_key\": \"https://codal.ir/reports/decision.aspx?letterserial=n11yvmoryi%2bat2chufzgva%3d%3d&ct=0&ft=-1&let=19&rt=3\",\n  \"method\": \"GET\",\n  \"payload\": null,\n  \"headers\": {},\n  \"user_data\": {\n    \"__crawlee\": {\n      \"state\": \"RequestState.REQUEST_HANDLER\"\n    }\n  },\n  \"retry_count\": 0,\n  \"no_retry\": false,\n  \"loaded_url\": \"https://codal.ir/Reports/Decision.aspx?LetterSerial=N11YvmoRYi%2bat2chUfzGVA%3d%3d&rt=3&let=19&ct=0&ft=-1\",\n  \"handled_at\": \"2025-10-09 22:23:21.812630+00:00\",\n  \"id\": \"XPCd6pDT3eVh8EW\",\n  \"json_\": null,\n  \"order_no\": null\n}",
+  "order_no": null
+}

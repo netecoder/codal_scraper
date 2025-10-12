@@ -1,0 +1,15 @@
+{
+  "url": "https://codal.ir/Reports/Decision.aspx?LetterSerial=AojTl0%2bFpj9Xk3z4cC8GoA%3d%3d&rt=0&let=19&ct=0&ft=-1",
+  "unique_key": "https://codal.ir/reports/decision.aspx?letterserial=aojtl0%2bfpj9xk3z4cc8goa%3d%3d&ct=0&ft=-1&let=19&rt=0",
+  "method": "GET",
+  "payload": null,
+  "headers": {},
+  "user_data": {},
+  "retry_count": 0,
+  "no_retry": false,
+  "loaded_url": null,
+  "handled_at": null,
+  "id": "kynccahz1MKnUla",
+  "json_": "{\n  \"url\": \"https://codal.ir/Reports/Decision.aspx?LetterSerial=AojTl0%2bFpj9Xk3z4cC8GoA%3d%3d&rt=0&let=19&ct=0&ft=-1\",\n  \"unique_key\": \"https://codal.ir/reports/decision.aspx?letterserial=aojtl0%2bfpj9xk3z4cc8goa%3d%3d&ct=0&ft=-1&let=19&rt=0\",\n  \"method\": \"GET\",\n  \"payload\": null,\n  \"headers\": {},\n  \"user_data\": {\n    \"__crawlee\": {\n      \"state\": \"RequestState.REQUEST_HANDLER\"\n    }\n  },\n  \"retry_count\": 0,\n  \"no_retry\": false,\n  \"loaded_url\": \"https://codal.ir/Reports/Decision.aspx?LetterSerial=AojTl0%2bFpj9Xk3z4cC8GoA%3d%3d&rt=0&let=19&ct=0&ft=-1\",\n  \"handled_at\": \"2025-10-09 22:23:21.874264+00:00\",\n  \"id\": \"kynccahz1MKnUla\",\n  \"json_\": null,\n  \"order_no\": null\n}",
+  "order_no": null
+}
