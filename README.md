@@ -336,7 +336,7 @@ Contributions are welcome! Please feel free to submit pull requests.
 ### Development Setup
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/codal-scraper.git`
+2. Clone your fork: `git clone https://github.com/netecoder/codal_scraper.git`
 3. Install in development mode: `pip install -e .[dev]`
 4. Install pre-commit hooks: `pre-commit install`
 5. Make your changes and add tests

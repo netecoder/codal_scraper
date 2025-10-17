@@ -15,7 +15,7 @@ setup(
     description="A comprehensive Python package for scraping and analyzing data from Codal.ir",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/codal-scraper",
+    url="https://github.com/netecoder/codal_scraper",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
