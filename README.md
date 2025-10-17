@@ -374,13 +374,6 @@ This tool is for educational and research purposes. Please respect Codal.ir's te
 - ✅ Added comprehensive optional dependencies
 - ✅ Improved error handling and validation
 - ✅ Added extensive documentation and examples
-
-## 🙏 Acknowledgments
-
-- Codal.ir for providing the data API
-- The Playwright team for the excellent browser automation framework
-- The pandas and requests library maintainers
-
+- 
 ---
-
 **Made with ❤️ for the Iranian financial data community**
