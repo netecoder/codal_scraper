@@ -7,7 +7,6 @@ numpy>=1.23.0
 # Async scraping dependencies
 crawlee[playwright]>=0.3.0
 playwright>=1.40.0
-asyncio>=3.4.3
 
 # Network visualization
 networkx>=3.0

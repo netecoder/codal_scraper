@@ -9,8 +9,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent))
 
-from src import CodalClient, DataProcessor
-from src.constants import YEAR_RANGES
+from codal_scraper import CodalClient, DataProcessor
+from codal_scraper.constants import YEAR_RANGES
 
 def test_url_extraction():
     """
@@ -78,7 +78,7 @@ def test_board_scraper_import():
     print("=" * 60)
     
     try:
-        from src.board_scraper import BoardMemberScraper
+        from codal_scraper.board_scraper import BoardMemberScraper
         print("   [OK] BoardMemberScraper imported successfully")
         
         # Test initialization

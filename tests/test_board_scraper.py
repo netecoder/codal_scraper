@@ -9,8 +9,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent))
 
-from src import CodalClient, BoardMemberScraper
-from src.constants import YEAR_RANGES
+from codal_scraper import CodalClient, BoardMemberScraper
+from codal_scraper.constants import YEAR_RANGES
 
 
 async def test_board_scraper():

@@ -54,8 +54,19 @@ def datetime_to_num(dt: Union[str, None]) -> Optional[int]:
     try:
         # Remove non-numeric characters
         dt = re.sub(r'[^0-9]', '', str(dt))
+        
+        # Handle empty string after cleaning
+        if not dt:
+            return None
+            
         # Pad with zeros to get 14 digits (YYYYMMDDHHmmss)
-        return int(dt) * (10 ** (14 - len(dt)))
+        dt_len = len(dt)
+        if dt_len > 14:
+            dt = dt[:14]  # Truncate if too long
+        elif dt_len < 14:
+            dt = dt.ljust(14, '0')  # Pad with zeros if too short
+            
+        return int(dt)
     except (ValueError, TypeError) as e:
         print(f"Error converting datetime: {e}")
         return None

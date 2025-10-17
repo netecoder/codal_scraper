@@ -113,8 +113,8 @@ class DataProcessor:
         Filter data by date range
         
         Args:
-            start_date: Start date (inclusive)
-            end_date: End date (inclusive)
+            start_date: Start date (inclusive) - can be Persian or Gregorian
+            end_date: End date (inclusive) - can be Persian or Gregorian
             date_column: Name of date column to filter
         
         Returns:
@@ -124,11 +124,26 @@ class DataProcessor:
             logger.warning(f"Date column '{date_column}' not found")
             return self
         
-        if start_date:
-            self.df = self.df[self.df[date_column] >= pd.to_datetime(start_date)]
-        
-        if end_date:
-            self.df = self.df[self.df[date_column] <= pd.to_datetime(end_date)]
+        try:
+            if start_date:
+                # Try to parse as datetime, fallback to string comparison for Persian dates
+                try:
+                    start_dt = pd.to_datetime(start_date)
+                    self.df = self.df[self.df[date_column] >= start_dt]
+                except:
+                    # Fallback to string comparison for Persian dates
+                    self.df = self.df[self.df[date_column].astype(str) >= start_date]
+            
+            if end_date:
+                # Try to parse as datetime, fallback to string comparison for Persian dates
+                try:
+                    end_dt = pd.to_datetime(end_date)
+                    self.df = self.df[self.df[date_column] <= end_dt]
+                except:
+                    # Fallback to string comparison for Persian dates
+                    self.df = self.df[self.df[date_column].astype(str) <= end_date]
+        except Exception as e:
+            logger.warning(f"Failed to filter by date range: {e}")
         
         return self
     

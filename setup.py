@@ -42,18 +42,33 @@ setup(
     ],
     extras_require={
         "parquet": ["pyarrow>=10.0.0"],
+        "async": [
+            "crawlee[playwright]>=0.3.0",
+            "playwright>=1.40.0",
+        ],
+        "network": [
+            "networkx>=3.0",
+            "pyvis>=0.3.0",
+        ],
         "dev": [
             "pytest>=7.0.0",
             "black>=22.0.0",
             "flake8>=4.0.0",
             "mypy>=0.990",
         ],
-    },
-    entry_points={
-        "console_scripts": [
-            "codal-scraper=codal_scraper.cli:main",
+        "all": [
+            "pyarrow>=10.0.0",
+            "crawlee[playwright]>=0.3.0",
+            "playwright>=1.40.0",
+            "networkx>=3.0",
+            "pyvis>=0.3.0",
         ],
     },
+    # entry_points={
+    #     "console_scripts": [
+    #         "codal-scraper=codal_scraper.cli:main",
+    #     ],
+    # },
     include_package_data=True,
     zip_safe=False,
 )

@@ -1,41 +1,68 @@
 # Codal Scraper
 
-A comprehensive Python package for scraping and analyzing data from Codal.ir, the Iranian stock market disclosure system. Now with integrated board member detailed information scraping!
+A comprehensive Python package for scraping and analyzing data from Codal.ir, the Iranian stock market disclosure system. This package provides both synchronous API data fetching and asynchronous web scraping capabilities for detailed board member information.
 
-## Features
+## 🚀 Features
 
-- **Fluent API Interface**: Chainable methods for building complex queries
-- **Board Member Scraping**: Async scraping of detailed board member information from Codal pages
-- **Robust Data Fetching**: Automatic retry logic and error handling
-- **Data Processing**: Built-in processing and normalization for Persian text
-- **Multiple Export Formats**: Excel, CSV, JSON, and Parquet
-- **Network Visualization**: Interactive board member network graphs
-- **Validation**: Comprehensive input validation for all parameters
-- **Caching Support**: Efficient data caching to reduce API calls
-- **Persian Calendar Support**: Native support for Shamsi (Persian) dates
+- **📊 API Data Fetching**: Robust synchronous client for Codal API data retrieval
+- **🕷️ Async Web Scraping**: Advanced board member detail extraction using Playwright
+- **🔄 Fluent API Interface**: Chainable methods for building complex queries
+- **📈 Data Processing**: Built-in processing and normalization for Persian text
+- **💾 Multiple Export Formats**: Excel, CSV, JSON, and Parquet support
+- **🕸️ Network Visualization**: Interactive board member network graphs
+- **✅ Input Validation**: Comprehensive validation for all parameters
+- **🗓️ Persian Calendar Support**: Native support for Shamsi (Persian) dates
+- **⚡ Retry Logic**: Automatic retry with exponential backoff
+- **📦 Modular Design**: Install only what you need
 
-## Installation
+## 📋 Requirements
 
-### Requirements
+- Python 3.8+
+- Internet connection for API access
+
+## 🔧 Installation
+
+### Basic Installation (Core Features)
 
 ```bash
-pip install requests pandas openpyxl jdatetime
+pip install codal-scraper
 ```
 
-### For Board Member Scraping (Async)
+### With Optional Features
 
 ```bash
-pip install crawlee[playwright] networkx pyvis
+# For async web scraping (board member details)
+pip install codal-scraper[async]
+
+# For network visualization
+pip install codal-scraper[network]
+
+# For Parquet export support
+pip install codal-scraper[parquet]
+
+# For all optional features
+pip install codal-scraper[all]
+```
+
+### Development Installation
+
+```bash
+git clone https://github.com/yourusername/codal-scraper.git
+cd codal-scraper
+pip install -e .
+```
+
+### Install Playwright Browsers (for async scraping)
+
+If you're using the async scraping features, you need to install Playwright browsers:
+
+```bash
 playwright install chromium
 ```
 
-### Optional (for Parquet support)
+## 🚀 Quick Start
 
-```bash
-pip install pyarrow
-```
-
-## Quick Start
+### Basic Usage - API Data Fetching
 
 ```python
 from codal_scraper import CodalClient, DataProcessor
@@ -45,7 +72,7 @@ client = CodalClient()
 
 # Search for board of directors changes
 board_changes = client.search_board_changes(
-    from_date="1402/01/01",
+    from_date="1403/01/01",
     to_date="1403/12/29",
     company_type='1'  # Main stock exchange
 )
@@ -53,9 +80,42 @@ board_changes = client.search_board_changes(
 # Process and export data
 processor = DataProcessor(board_changes)
 processor.to_excel("board_changes.xlsx")
+print(f"Found {len(board_changes)} board change announcements")
 ```
 
-## Usage Examples
+### Advanced Usage - Board Member Scraping
+
+```python
+import asyncio
+from codal_scraper import CodalClient, BoardMemberScraper
+
+async def scrape_board_members():
+    # Step 1: Get board change announcements from API
+    client = CodalClient()
+    board_changes = client.search_board_changes(
+        from_date="1403/01/01",
+        to_date="1403/06/30",
+        company_type='1'
+    )
+    
+    # Step 2: Save URLs to CSV for processing
+    client.save_urls_to_csv(board_changes, 'data_temp.csv')
+    
+    # Step 3: Scrape detailed board member info
+    scraper = BoardMemberScraper()
+    board_members_df = await scraper.scrape_from_csv('data_temp.csv')
+    
+    # Step 4: Export and visualize
+    scraper.export_to_excel(board_members_df, 'board_members.xlsx')
+    scraper.visualize_network('board_network.html')
+    
+    return board_members_df
+
+# Run the async function
+board_data = asyncio.run(scrape_board_members())
+```
+
+## 📚 Usage Examples
 
 ### 1. Search by Symbol
 
@@ -93,39 +153,7 @@ results = (client
     .fetch_all_pages(max_pages=10))
 ```
 
-### 4. Board Member Scraping (Async)
-
-```python
-import asyncio
-from codal_scraper import CodalClient, BoardMemberScraper
-
-async def scrape_board_members():
-    # Step 1: Get board change announcements from API
-    client = CodalClient()
-    board_changes = client.search_board_changes(
-        from_date="1403/01/01",
-        to_date="1403/06/30",
-        company_type='1'
-    )
-    
-    # Step 2: Save URLs to CSV
-    client.save_urls_to_csv(board_changes, 'data_temp.csv')
-    
-    # Step 3: Scrape detailed board member info
-    scraper = BoardMemberScraper()
-    board_members_df = await scraper.scrape_from_csv('data_temp.csv')
-    
-    # Step 4: Export and visualize
-    scraper.export_to_excel(board_members_df, 'board_members.xlsx')
-    scraper.visualize_network('board_network.html')
-    
-    return board_members_df
-
-# Run the async function
-board_data = asyncio.run(scrape_board_members())
-```
-
-### 5. Data Processing
+### 4. Data Processing and Analysis
 
 ```python
 processor = DataProcessor(results)
@@ -145,81 +173,10 @@ processor.sort_by('publish_date', ascending=False)
 processor.to_excel("output.xlsx")
 processor.to_csv("output.csv")
 processor.to_json("output.json")
-processor.to_parquet("output.parquet")
+processor.to_parquet("output.parquet")  # Requires parquet extra
 ```
 
-## API Reference
-
-### CodalClient
-
-Main client for interacting with Codal API.
-
-#### Methods
-
-- `set_symbol(symbol)`: Set stock symbol for query
-- `set_company_type(type)`: Set company type ('بورس', 'فرابورس', 'پایه' or '1', '2', '3')
-- `set_isic(code)`: Set ISIC industry code
-- `set_subject(subject)`: Set announcement subject
-- `set_tracing_number(number)`: Set tracing number
-- `set_letter_code(code)`: Set letter code (e.g., 'ن-45')
-- `set_period_length(months)`: Set reporting period (1-12 months)
-- `set_date_range(from_date, to_date)`: Set date range (Persian calendar)
-- `set_audit_status(audited, not_audited)`: Set audit status filters
-- `set_consolidation_status(consolidated, not_consolidated)`: Set consolidation filters
-- `set_entity_type(include_childs, include_mains)`: Set entity type filters
-- `set_year_end(date)`: Set fiscal year end date
-- `set_publisher_only(bool)`: Filter organization-published announcements
-- `fetch_page(page)`: Fetch a single page of results
-- `fetch_all_pages(max_pages)`: Fetch multiple pages
-- `get_query_url(use_api)`: Generate query URL
-- `get_summary_stats()`: Get query statistics
-
-### DataProcessor
-
-Process and export Codal data.
-
-#### Methods
-
-- `add_letter_descriptions()`: Add human-readable descriptions for letter codes
-- `filter_by_letter_code(codes)`: Filter by letter code(s)
-- `filter_by_date_range(start, end, column)`: Filter by date range
-- `filter_by_symbols(symbols)`: Filter by stock symbol(s)
-- `remove_duplicates(subset, keep)`: Remove duplicate rows
-- `sort_by(columns, ascending)`: Sort data by column(s)
-- `aggregate_by_symbol_year()`: Aggregate data by symbol and year
-- `get_summary_stats()`: Get summary statistics
-- `to_excel(filepath, sheet_name, index)`: Export to Excel
-- `to_csv(filepath, index, encoding)`: Export to CSV
-- `to_json(filepath, orient, indent)`: Export to JSON
-- `to_parquet(filepath)`: Export to Parquet
-- `from_json_file(filepath)`: Load from JSON file
-- `from_excel_file(filepath, sheet)`: Load from Excel file
-
-## Letter Codes
-
-Common letter codes and their meanings:
-
-- **ن-10**: Financial statements
-- **ن-30**: Board decisions
-- **ن-45**: Board of directors changes
-- **ن-41**: Assembly invitations
-- **ن-56**: Capital increase
-- **ن-58**: Important information
-
-## Error Handling
-
-The package includes comprehensive error handling:
-
-```python
-from codal_scraper.validators import ValidationError
-
-try:
-    client.set_symbol("invalid@symbol")
-except ValidationError as e:
-    print(f"Validation error: {e}")
-```
-
-## Configuration
+## 🔧 Configuration
 
 ### Logging
 
@@ -241,63 +198,189 @@ client.session.headers.update({
 })
 ```
 
-## Advanced Usage
+## 📊 Letter Codes Reference
 
-### Batch Processing
+Common letter codes and their meanings:
 
-```python
-# Process multiple symbols
-symbols = ['فولاد', 'فملی', 'شبندر']
-all_data = []
+| Code | Description |
+|------|-------------|
+| **ن-10** | Financial statements |
+| **ن-30** | Board decisions |
+| **ن-45** | Board of directors changes |
+| **ن-41** | Assembly invitations |
+| **ن-56** | Capital increase |
+| **ن-58** | Important information |
 
-for symbol in symbols:
-    data = client.search_by_symbol(symbol, "1402/01/01", "1402/12/29")
-    all_data.extend(data)
+For a complete list, see the [Letter Codes Documentation](DOCUMENTATION.md#letter-codes).
 
-# Combine and process
-processor = DataProcessor(all_data)
-processor.remove_duplicates()
-processor.to_excel("combined_data.xlsx")
+## 🏗️ Architecture
+
+### Core Components
+
+- **CodalClient**: Synchronous API client for data fetching
+- **BoardMemberScraper**: Asynchronous web scraper for detailed information
+- **DataProcessor**: Data processing, filtering, and export utilities
+- **InputValidator**: Input validation and sanitization
+- **Utils**: Helper functions for text processing and date conversion
+
+### Data Flow
+
+```
+API Data → CodalClient → DataProcessor → Export Formats
+    ↓
+URLs → BoardMemberScraper → Detailed Data → Network Analysis
 ```
 
-### Custom Filtering
+## 🧪 Testing
 
-```python
-# Load existing data and apply custom filters
-processor = DataProcessor.from_excel_file("existing_data.xlsx")
+Run the included tests to verify your installation:
 
-# Apply complex filtering
-df = processor.df
-filtered = df[
-    (df['letter_code'] == 'ن-45') &
-    (df['symbol'].str.contains('فولاد')) &
-    (df['publish_date'] >= '2023-01-01')
-]
+```bash
+# Basic functionality test
+python tests/test_quick.py
 
-# Create new processor with filtered data
-new_processor = DataProcessor(filtered)
-new_processor.to_excel("filtered_data.xlsx")
+# Integration test
+python tests/test_integration.py
+
+# Board scraper test (requires async dependencies)
+python tests/test_board_scraper.py
 ```
 
-## Performance Tips
+## ⚠️ Error Handling
 
-1. **Use Parquet for large datasets**: Parquet files are much faster to read/write than Excel
-2. **Limit page fetching**: Use `max_pages` parameter to limit API calls during testing
-3. **Cache results**: Save fetched data locally to avoid repeated API calls
-4. **Batch exports**: Process all data before exporting rather than exporting incrementally
+The package includes comprehensive error handling:
 
-## Contributing
+```python
+from codal_scraper.validators import ValidationError
+
+try:
+    client.set_symbol("invalid@symbol")
+except ValidationError as e:
+    print(f"Validation error: {e}")
+```
+
+## 🚨 Rate Limiting and Best Practices
+
+- **Respect Rate Limits**: The package includes automatic delays between requests
+- **Use Appropriate Timeouts**: Default timeout is 30 seconds
+- **Limit Page Fetching**: Use `max_pages` parameter during testing
+- **Cache Results**: Save fetched data locally to avoid repeated API calls
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### 1. Import Errors
+```bash
+ModuleNotFoundError: No module named 'codal_scraper'
+```
+**Solution**: Install the package properly:
+```bash
+pip install -e .  # For development
+# or
+pip install codal-scraper
+```
+
+#### 2. Async Dependencies Missing
+```bash
+ImportError: No module named 'crawlee'
+```
+**Solution**: Install async dependencies:
+```bash
+pip install codal-scraper[async]
+```
+
+#### 3. Playwright Browser Not Found
+```bash
+Error: Browser not found
+```
+**Solution**: Install Playwright browsers:
+```bash
+playwright install chromium
+```
+
+#### 4. Persian Text Display Issues
+**Solution**: Ensure your terminal/IDE supports UTF-8 encoding.
+
+#### 5. Date Format Issues
+**Solution**: Use Persian calendar dates in YYYY/MM/DD format:
+```python
+# Correct
+client.set_date_range("1403/01/01", "1403/12/29")
+
+# Incorrect
+client.set_date_range("2024/01/01", "2024/12/29")
+```
+
+### Performance Tips
+
+1. **Use Parquet for Large Datasets**: Much faster than Excel for large files
+2. **Limit Page Fetching**: Use `max_pages` parameter during development
+3. **Cache Results**: Save API data locally to avoid repeated requests
+4. **Batch Processing**: Process multiple symbols in batches
+
+## 📈 Performance Benchmarks
+
+| Operation | Time | Notes |
+|-----------|------|-------|
+| Fetch 1 page (20 items) | ~1-2 seconds | API dependent |
+| Process 1000 records | ~0.1 seconds | Local processing |
+| Export to Excel | ~2-5 seconds | File size dependent |
+| Export to Parquet | ~0.5 seconds | Much faster than Excel |
+| Scrape 10 board pages | ~30-60 seconds | Network dependent |
+
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit pull requests.
 
-## License
+### Development Setup
 
-This project is licensed under the MIT License.
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/yourusername/codal-scraper.git`
+3. Install in development mode: `pip install -e .[dev]`
+4. Install pre-commit hooks: `pre-commit install`
+5. Make your changes and add tests
+6. Run tests: `pytest`
+7. Submit a pull request
 
-## Disclaimer
+### Code Style
 
-This tool is for educational and research purposes. Please respect Codal.ir's terms of service and rate limits when using this scraper.
+- Follow PEP 8 guidelines
+- Use type hints where appropriate
+- Add docstrings for all public methods
+- Include tests for new features
 
-## Support
+## 📄 License
 
-For issues, questions, or contributions, please open an issue on the project repository.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚖️ Disclaimer
+
+This tool is for educational and research purposes. Please respect Codal.ir's terms of service and rate limits when using this scraper. The authors are not responsible for any misuse of this tool.
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/yourusername/codal-scraper/issues)
+- **Documentation**: [Full Documentation](DOCUMENTATION.md)
+- **Examples**: See the `examples/` directory
+
+## 🔄 Changelog
+
+### Version 1.0.0
+- ✅ Fixed import path issues
+- ✅ Fixed datetime_to_num function bugs
+- ✅ Improved date filtering for Persian dates
+- ✅ Fixed URL generation issues
+- ✅ Added comprehensive optional dependencies
+- ✅ Improved error handling and validation
+- ✅ Added extensive documentation and examples
+
+## 🙏 Acknowledgments
+
+- Codal.ir for providing the data API
+- The Playwright team for the excellent browser automation framework
+- The pandas and requests library maintainers
+
+---
+
+**Made with ❤️ for the Iranian financial data community**

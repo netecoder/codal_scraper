@@ -257,7 +257,7 @@ class CodalClient:
         query.update(cleaned_params)
         
         if use_api:
-            url_parts[4] = f"&{urlencode(query)}&search=true"
+            url_parts[4] = f"{urlencode(query)}&search=true"
         else:
             url_parts[4] = f"search&{urlencode(query)}"
         

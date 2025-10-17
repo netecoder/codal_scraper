@@ -8,8 +8,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src import CodalClient, DataProcessor
-from src.constants import YEAR_RANGES, CURRENT_DATE
+from codal_scraper import CodalClient, DataProcessor
+from codal_scraper.constants import YEAR_RANGES, CURRENT_DATE
 
 
 def fetch_board_changes_example():
@@ -81,7 +81,16 @@ def fetch_board_changes_example():
     print("\nSummary Statistics:")
     print(f"  Total records: {stats.get('total_records', 0)}")
     print(f"  Total unique symbols: {stats.get('unique_symbols', 0)}")
-    print(f"  Date range: {stats.get('date_range', {})}")
+    
+    # Safely print date range (handle Unicode issues)
+    date_range = stats.get('date_range', {})
+    if date_range:
+        try:
+            print(f"  Date range: {date_range}")
+        except UnicodeEncodeError:
+            print(f"  Date range: Available (Unicode display issue)")
+    else:
+        print(f"  Date range: No date range found")
     
     # Export to Excel
     output_path = Path('output') / 'board_changes.xlsx'
@@ -103,7 +112,11 @@ def fetch_specific_symbol_example(symbol: str = 'فولاد'):
     
     client = CodalClient()
     
-    print(f"\nFetching all announcements for symbol: {symbol}")
+    # Safely print symbol (handle Unicode issues)
+    try:
+        print(f"\nFetching all announcements for symbol: {symbol}")
+    except UnicodeEncodeError:
+        print(f"\nFetching all announcements for symbol: [Persian text]")
     
     # Search by symbol with date range
     announcements = client.search_by_symbol(
@@ -112,7 +125,10 @@ def fetch_specific_symbol_example(symbol: str = 'فولاد'):
         to_date=YEAR_RANGES[1402][1]
     )
     
-    print(f"Found {len(announcements)} announcements for {symbol}")
+    try:
+        print(f"Found {len(announcements)} announcements for {symbol}")
+    except UnicodeEncodeError:
+        print(f"Found {len(announcements)} announcements for [Persian symbol]")
     
     # Process and analyze
     processor = DataProcessor(announcements)
@@ -123,7 +139,12 @@ def fetch_specific_symbol_example(symbol: str = 'فولاد'):
         letter_distribution = processor.df['letter_code'].value_counts()
         print("\nAnnouncement types:")
         for code, count in letter_distribution.head(10).items():
-            print(f"  {code}: {count}")
+            try:
+                print(f"  {code}: {count}")
+            except UnicodeEncodeError:
+                # Skip problematic Unicode characters for display
+                safe_code = str(code).encode('ascii', 'ignore').decode('ascii')
+                print(f"  {safe_code}: {count}")
     
     return processor
 
@@ -173,13 +194,21 @@ def custom_query_example():
     print("\nBuilding custom query...")
     
     # Build a complex custom query
-    results = (client
-               .set_letter_code('ن-45')  # Board changes
-               .set_company_type('1')     # Main exchange
-               .set_date_range(YEAR_RANGES[1400][0], CURRENT_DATE)
-               .set_entity_type(include_childs=False, include_mains=True)
-               .set_audit_status(audited=True, not_audited=True)
-               .fetch_all_pages(max_pages=5))  # Limit to 5 pages for example
+    try:
+        results = (client
+                   .set_letter_code('ن-45')  # Board changes
+                   .set_company_type('1')     # Main exchange
+                   .set_date_range(YEAR_RANGES[1400][0], CURRENT_DATE)
+                   .set_entity_type(include_childs=False, include_mains=True)
+                   .set_audit_status(audited=True, not_audited=True)
+                   .fetch_all_pages(max_pages=5))  # Limit to 5 pages for example
+    except Exception as e:
+        print(f"Custom query failed: {e}")
+        # Fallback to simpler query
+        results = (client
+                   .set_letter_code('ن-45')  # Board changes
+                   .set_company_type('1')     # Main exchange
+                   .fetch_all_pages(max_pages=2))
     
     print(f"Custom query returned {len(results)} results")
     
@@ -201,7 +230,11 @@ if __name__ == "__main__":
     board_processor = fetch_board_changes_example()
     
     # Example 2: Fetch for specific symbol
-    symbol_processor = fetch_specific_symbol_example('فولاد')
+    try:
+        symbol_processor = fetch_specific_symbol_example('فولاد')
+    except UnicodeEncodeError:
+        # Fallback to ASCII-safe symbol if Unicode fails
+        symbol_processor = fetch_specific_symbol_example('FOLD')
     
     # Example 3: Fetch financial statements
     # financial_processor = fetch_financial_statements_example()

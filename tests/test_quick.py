@@ -8,8 +8,8 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent))
 
-from src import CodalClient, DataProcessor
-from src.constants import YEAR_RANGES
+from codal_scraper import CodalClient, DataProcessor
+from codal_scraper.constants import YEAR_RANGES
 
 
 def quick_test():

@@ -16,8 +16,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import networkx as nx
-from src import CodalClient, DataProcessor, BoardMemberScraper
-from src.constants import YEAR_RANGES
+from codal_scraper import CodalClient, DataProcessor, BoardMemberScraper
+from codal_scraper.constants import YEAR_RANGES
 
 # Configure logging
 logging.basicConfig(

@@ -1,928 +1,954 @@
 # Codal Scraper - Complete Documentation
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Installation Guide](#installation-guide)
-4. [Core Components](#core-components)
-5. [API Reference](#api-reference)
-6. [Usage Examples](#usage-examples)
-7. [Board Member Scraping](#board-member-scraping)
-8. [Data Processing](#data-processing)
-9. [Testing](#testing)
-10. [Troubleshooting](#troubleshooting)
-11. [Best Practices](#best-practices)
-12. [FAQ](#faq)
 
----
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Quick Start](#quick-start)
+4. [API Reference](#api-reference)
+5. [Advanced Usage](#advanced-usage)
+6. [Data Processing](#data-processing)
+7. [Async Web Scraping](#async-web-scraping)
+8. [Configuration](#configuration)
+9. [Error Handling](#error-handling)
+10. [Performance Optimization](#performance-optimization)
+11. [Examples](#examples)
+12. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
-Codal Scraper is a comprehensive Python package designed for extracting and analyzing data from Codal.ir, the Iranian stock market disclosure system. It provides both API-based data fetching and browser-based detailed information scraping.
+The Codal Scraper is a comprehensive Python package designed to interact with Codal.ir, the Iranian stock market disclosure system. It provides both synchronous API data fetching and asynchronous web scraping capabilities for extracting detailed financial and corporate information.
 
 ### Key Features
 
-- **Dual-mode Operation**: API queries and browser-based scraping
-- **Persian Language Support**: Full support for Persian text and Shamsi calendar
-- **Async Scraping**: High-performance asynchronous board member data extraction
-- **Network Analysis**: Board member relationship mapping and visualization
-- **Multiple Export Formats**: Excel, CSV, JSON, Parquet
-- **Robust Error Handling**: Retry logic, validation, and comprehensive logging
-- **Fluent API**: Intuitive chainable interface for query building
+- **Dual-Mode Operation**: Synchronous API client and asynchronous web scraper
+- **Persian Calendar Support**: Native support for Shamsi dates
+- **Comprehensive Data Processing**: Built-in filtering, sorting, and normalization
+- **Multiple Export Formats**: Excel, CSV, JSON, and Parquet
+- **Network Analysis**: Board member relationship visualization
+- **Robust Error Handling**: Retry logic and validation
 
-### Use Cases
-
-1. **Market Research**: Analyze board compositions across companies
-2. **Network Analysis**: Identify board member connections and influence
-3. **Compliance Monitoring**: Track board changes and announcements
-4. **Data Mining**: Extract structured data from unstructured announcements
-5. **Academic Research**: Study corporate governance patterns
-
----
-
-## Architecture
-
-### System Design
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   User Application                   │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│                 Codal Scraper Package               │
-├──────────────────────────────────────────────────────┤
-│  ┌────────────┐  ┌──────────────┐  ┌──────────────┐│
-│  │   Client   │  │Board Scraper │  │  Processor   ││
-│  │    (API)   │  │   (Async)    │  │  (Export)    ││
-│  └──────┬─────┘  └──────┬───────┘  └──────┬───────┘│
-│         │               │                  │        │
-│  ┌──────▼───────────────▼──────────────────▼───────┐│
-│  │            Core Components                       ││
-│  │  • Validators  • Utils  • Constants              ││
-│  └──────────────────────────────────────────────────┘│
-└──────────────────────────────────────────────────────┘
-                       │                    │
-        ┌──────────────▼──────┐  ┌─────────▼──────────┐
-        │    Codal.ir API     │  │  Codal.ir Website  │
-        └─────────────────────┘  └────────────────────┘
-```
-
-### Package Structure
-
-```
-codal_scraper/
-├── src/                        # Source code
-│   ├── __init__.py            # Package initialization
-│   ├── client.py              # API client (310 lines)
-│   ├── board_scraper.py       # Async scraper (450 lines)
-│   ├── processor.py           # Data processing (385 lines)
-│   ├── validators.py          # Input validation (95 lines)
-│   ├── utils.py               # Utilities (260 lines)
-│   └── constants.py           # Constants (145 lines)
-├── examples/                   # Example scripts
-│   ├── fetch_board_changes.py # Basic examples
-│   └── full_board_scraping.py # Complete workflow
-├── tests/                      # Test files
-│   ├── test_integration.py    # Integration tests
-│   ├── test_board_scraper.py  # Scraper tests
-│   └── test_quick.py          # Quick tests
-├── docs/                       # Documentation
-│   ├── DOCUMENTATION.md       # This file
-│   ├── API.md                 # API reference
-│   └── EXAMPLES.md            # Usage examples
-├── requirements.txt            # Dependencies
-├── setup.py                    # Package setup
-└── README.md                   # Quick start guide
-```
-
----
-
-## Installation Guide
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Windows, macOS, or Linux
-- Internet connection for API access
+## Installation
 
 ### Basic Installation
 
 ```bash
-# Clone or download the package
-cd codal_scraper
-
-# Install core dependencies
-pip install -r requirements.txt
+pip install codal-scraper
 ```
 
-### Full Installation (with async scraping)
+### With Optional Features
 
 ```bash
-# Install all dependencies including async scraping
-pip install -r requirements.txt
-pip install crawlee[playwright] networkx pyvis
+# Async web scraping capabilities
+pip install codal-scraper[async]
 
-# Install Playwright browsers
+# Network visualization features
+pip install codal-scraper[network]
+
+# Parquet export support
+pip install codal-scraper[parquet]
+
+# All optional features
+pip install codal-scraper[all]
+
+# Development dependencies
+pip install codal-scraper[dev]
+```
+
+### Browser Installation (for async scraping)
+
+```bash
 playwright install chromium
 ```
 
-### Development Installation
+## Quick Start
 
-```bash
-# Install in editable mode
-pip install -e .
-
-# Install development dependencies
-pip install pytest black flake8 mypy
-```
-
-### Verify Installation
+### Basic API Usage
 
 ```python
-# Test import
-from codal_scraper import CodalClient, DataProcessor, BoardMemberScraper
+from codal_scraper import CodalClient, DataProcessor
 
-# Run quick test
-python test_quick.py
+# Initialize client
+client = CodalClient()
+
+# Fetch board changes
+data = client.search_board_changes(
+    from_date="1403/01/01",
+    to_date="1403/12/29",
+    company_type='1'
+)
+
+# Process data
+processor = DataProcessor(data)
+processor.to_excel("output.xlsx")
 ```
 
----
+### Async Board Member Scraping
 
-## Core Components
+```python
+import asyncio
+from codal_scraper import CodalClient, BoardMemberScraper
 
-### 1. CodalClient (client.py)
+async def main():
+    # Get URLs from API
+    client = CodalClient()
+    data = client.search_board_changes("1403/01/01", "1403/06/30")
+    client.save_urls_to_csv(data, 'urls.csv')
+    
+    # Scrape detailed info
+    scraper = BoardMemberScraper()
+    result = await scraper.scrape_from_csv('urls.csv')
+    scraper.export_to_excel(result, 'board_members.xlsx')
 
-The main interface for querying Codal.ir API.
-
-**Key Features:**
-- Fluent API for query building
-- Automatic retry with exponential backoff
-- URL extraction from API responses
-- Session management
-
-**Main Methods:**
-- `search_board_changes()`: Search for board director changes
-- `search_financial_statements()`: Get financial statements
-- `search_by_symbol()`: Search by stock symbol
-- `fetch_all_pages()`: Fetch paginated results
-- `save_urls_to_csv()`: Export URLs for scraping
-
-### 2. BoardMemberScraper (board_scraper.py)
-
-Async scraper for extracting detailed board member information.
-
-**Key Features:**
-- Playwright-based browser automation
-- Parallel processing of multiple URLs
-- Network graph construction
-- Failed URL tracking
-
-**Main Methods:**
-- `scrape_urls()`: Scrape list of URLs
-- `scrape_from_csv()`: Scrape from CSV file
-- `export_to_excel()`: Export with summaries
-- `visualize_network()`: Create network graph
-
-### 3. DataProcessor (processor.py)
-
-Data processing and export utilities.
-
-**Key Features:**
-- Multiple export formats
-- Data filtering and aggregation
-- Persian text normalization
-- Statistical summaries
-
-**Main Methods:**
-- `filter_by_letter_code()`: Filter by announcement type
-- `filter_by_date_range()`: Date-based filtering
-- `aggregate_by_symbol_year()`: Aggregation
-- `to_excel()`, `to_csv()`, `to_json()`, `to_parquet()`: Export methods
-
-### 4. Validators (validators.py)
-
-Input validation for data integrity.
-
-**Validations:**
-- Symbol format
-- Date format (Persian calendar)
-- ISIC codes
-- National IDs
-- URL format
-
-### 5. Utils (utils.py)
-
-Utility functions for data manipulation.
-
-**Functions:**
-- `normalize_persian_text()`: Clean Persian text
-- `persian_to_english_digits()`: Convert digits
-- `datetime_to_num()`: Date conversions
-- `gregorian_to_shamsi()`: Calendar conversion
-
-### 6. Constants (constants.py)
-
-Configuration and constants.
-
-**Contents:**
-- API endpoints
-- Letter codes dictionary
-- Date ranges
-- Character mappings
-- Default headers
-
----
+asyncio.run(main())
+```
 
 ## API Reference
 
 ### CodalClient
 
-```python
-from codal_scraper import CodalClient
+The main client for interacting with the Codal API.
 
-client = CodalClient(retry_count=3, timeout=30)
-```
-
-#### Query Building Methods
+#### Constructor
 
 ```python
-# Fluent API - all methods return self for chaining
-client.set_symbol("فولاد")                    # Set stock symbol
-client.set_letter_code("ن-45")               # Set announcement type
-client.set_date_range("1403/01/01", "1403/12/29")  # Date range
-client.set_company_type("1")                 # 1=بورس, 2=فرابورس, 3=پایه
-client.set_period_length(12)                 # Period in months
-client.set_audit_status(audited=True)        # Audit filter
-client.set_page_number(1)                    # Pagination
+CodalClient(retry_count: int = 3, timeout: int = 30)
 ```
 
-#### Data Fetching Methods
+**Parameters:**
+- `retry_count`: Number of retry attempts for failed requests (default: 3)
+- `timeout`: Request timeout in seconds (default: 30)
+
+#### Core Methods
+
+##### Parameter Setting Methods
+
+All parameter setting methods return `self` for method chaining.
+
+```python
+# Symbol filtering
+client.set_symbol(symbol: str) -> CodalClient
+
+# Company type filtering
+client.set_company_type(company_type: str) -> CodalClient
+# Valid values: 'بورس', 'فرابورس', 'پایه', '1', '2', '3'
+
+# Date range filtering
+client.set_date_range(from_date: str = None, to_date: str = None) -> CodalClient
+# Date format: "YYYY/MM/DD" (Persian calendar)
+
+# Letter code filtering
+client.set_letter_code(code: str) -> CodalClient
+# Example: 'ن-45' for board changes
+
+# Period length filtering
+client.set_period_length(period: Union[int, str]) -> CodalClient
+# Valid values: 1-12 (months)
+
+# Audit status filtering
+client.set_audit_status(audited: bool = True, not_audited: bool = True) -> CodalClient
+
+# Consolidation status filtering
+client.set_consolidation_status(consolidated: bool = True, not_consolidated: bool = True) -> CodalClient
+
+# Entity type filtering
+client.set_entity_type(include_childs: bool = True, include_mains: bool = True) -> CodalClient
+
+# Year end date filtering
+client.set_year_end(year_end_date: str) -> CodalClient
+
+# Publisher filtering
+client.set_publisher_only(publisher_only: bool = False) -> CodalClient
+
+# Page number for pagination
+client.set_page_number(page: int) -> CodalClient
+```
+
+##### Data Fetching Methods
 
 ```python
 # Fetch single page
-letters = client.fetch_page(1)
+client.fetch_page(page: int = None) -> Optional[List[Dict]]
 
-# Fetch all pages (with optional limit)
-all_letters = client.fetch_all_pages(max_pages=10)
+# Fetch multiple pages
+client.fetch_all_pages(max_pages: int = None) -> List[Dict]
 
-# Convenience methods
-board_changes = client.search_board_changes(from_date, to_date)
-financial_statements = client.search_financial_statements(from_date, to_date)
-symbol_announcements = client.search_by_symbol("فولاد")
+# Get query URL
+client.get_query_url(use_api: bool = True) -> str
+
+# Get summary statistics
+client.get_summary_stats() -> Dict
 ```
 
-#### URL Extraction
+##### Convenience Methods
 
 ```python
-# Extract URLs from API results
-urls = client.extract_letter_urls(letters)
+# Search for board changes
+client.search_board_changes(from_date: str, to_date: str, company_type: str = None) -> List[Dict]
 
-# Save to CSV for board scraping
-client.save_urls_to_csv(letters, "data_temp.csv")
-```
+# Search for financial statements
+client.search_financial_statements(from_date: str, to_date: str, period_length: int = 12, audited_only: bool = True) -> List[Dict]
 
-### BoardMemberScraper
+# Search by symbol
+client.search_by_symbol(symbol: str, from_date: str = None, to_date: str = None) -> List[Dict]
 
-```python
-from codal_scraper import BoardMemberScraper
-import asyncio
+# Extract URLs from API response
+client.extract_letter_urls(letters: List[Dict]) -> List[str]
 
-scraper = BoardMemberScraper()
-```
+# Save URLs to CSV
+client.save_urls_to_csv(letters: List[Dict], file_path: str = 'data_temp.csv') -> None
 
-#### Async Scraping Methods
-
-```python
-async def scrape_boards():
-    # From URL list
-    df = await scraper.scrape_urls(["url1", "url2"])
-    
-    # From CSV file
-    df = await scraper.scrape_from_csv("data_temp.csv")
-    
-    return df
-
-# Run async function
-board_data = asyncio.run(scrape_boards())
-```
-
-#### Export Methods
-
-```python
-# Export with summary sheets
-scraper.export_to_excel(df, "board_members.xlsx", include_summary=True)
-
-# Export to CSV
-scraper.export_to_csv(df, "board_members.csv")
-
-# Create network visualization
-scraper.visualize_network("board_network.html")
+# Reset all parameters
+client.reset_params() -> None
 ```
 
 ### DataProcessor
 
-```python
-from codal_scraper import DataProcessor
+Process and export Codal data to various formats.
 
-processor = DataProcessor(data)  # data can be list or DataFrame
+#### Constructor
+
+```python
+DataProcessor(data: Union[List[Dict], pd.DataFrame] = None)
 ```
 
-#### Processing Methods
+#### Core Methods
+
+##### Data Processing
 
 ```python
-# Add letter descriptions
-processor.add_letter_descriptions()
+# Add letter code descriptions
+processor.add_letter_descriptions() -> DataProcessor
 
-# Filter data
-processor.filter_by_letter_code(['ن-45', 'ن-30'])
-processor.filter_by_date_range("1402/01/01", "1402/12/29")
-processor.filter_by_symbols(['فولاد', 'فملی'])
+# Filter by letter codes
+processor.filter_by_letter_code(codes: Union[str, List[str]]) -> DataProcessor
 
-# Clean data
-processor.remove_duplicates(subset=['symbol', 'tracing_no'])
-processor.sort_by('publish_date', ascending=False)
+# Filter by date range
+processor.filter_by_date_range(start_date: str = None, end_date: str = None, date_column: str = 'publish_date') -> DataProcessor
 
-# Aggregate
-aggregated = processor.aggregate_by_symbol_year()
+# Filter by symbols
+processor.filter_by_symbols(symbols: Union[str, List[str]]) -> DataProcessor
+
+# Remove duplicates
+processor.remove_duplicates(subset: List[str] = None, keep: str = 'last') -> DataProcessor
+
+# Sort data
+processor.sort_by(columns: Union[str, List[str]], ascending: Union[bool, List[bool]] = True) -> DataProcessor
+
+# Aggregate by symbol and year
+processor.aggregate_by_symbol_year() -> pd.DataFrame
+
+# Get summary statistics
+processor.get_summary_stats() -> Dict
 ```
 
-#### Export Methods
+##### Export Methods
 
 ```python
-# Excel with optional summary
-processor.to_excel("output.xlsx", sheet_name="data", index=False)
+# Export to Excel
+processor.to_excel(filepath: Union[str, Path], sheet_name: str = 'data', index: bool = False) -> None
 
-# CSV with UTF-8 encoding
-processor.to_csv("output.csv", encoding='utf-8-sig')
+# Export to CSV
+processor.to_csv(filepath: Union[str, Path], index: bool = False, encoding: str = 'utf-8') -> None
 
-# JSON with formatting
-processor.to_json("output.json", orient='records', indent=2)
+# Export to JSON
+processor.to_json(filepath: Union[str, Path], orient: str = 'records', indent: int = 2) -> None
 
-# Parquet for big data
-processor.to_parquet("output.parquet")
+# Export to Parquet (requires parquet extra)
+processor.to_parquet(filepath: Union[str, Path]) -> None
 ```
 
----
-
-## Usage Examples
-
-### Example 1: Simple Board Changes Search
+##### Class Methods
 
 ```python
-from codal_scraper import CodalClient, DataProcessor
+# Load from JSON file
+DataProcessor.from_json_file(filepath: Union[str, Path]) -> DataProcessor
 
-# Search for board changes
-client = CodalClient()
-board_changes = client.search_board_changes(
-    from_date="1403/01/01",
-    to_date="1403/06/30",
-    company_type="1"  # Main stock exchange
-)
-
-# Process and export
-processor = DataProcessor(board_changes)
-processor.to_excel("board_changes.xlsx")
-print(f"Found {len(board_changes)} board changes")
+# Load from Excel file
+DataProcessor.from_excel_file(filepath: Union[str, Path], sheet_name: Union[str, int] = 0) -> DataProcessor
 ```
 
-### Example 2: Complete Workflow with Board Scraping
+### BoardMemberScraper
+
+Async scraper for extracting detailed board member information.
+
+#### Constructor
 
 ```python
-import asyncio
-from codal_scraper import CodalClient, BoardMemberScraper, DataProcessor
-
-async def complete_workflow():
-    # Step 1: Get announcements from API
-    client = CodalClient()
-    board_changes = client.search_board_changes(
-        "1403/01/01", "1403/06/30", company_type="1"
-    )
-    
-    # Step 2: Save URLs for scraping
-    client.save_urls_to_csv(board_changes, "data_temp.csv")
-    
-    # Step 3: Scrape detailed board member info
-    scraper = BoardMemberScraper()
-    board_members = await scraper.scrape_from_csv("data_temp.csv")
-    
-    # Step 4: Process and export
-    if not board_members.empty:
-        scraper.export_to_excel(board_members, "board_members_detailed.xlsx")
-        scraper.visualize_network("board_network.html")
-        print(f"Scraped {len(board_members)} board member records")
-    
-    return board_members
-
-# Run the workflow
-board_data = asyncio.run(complete_workflow())
+BoardMemberScraper(selectors: Dict[str, str] = None)
 ```
 
-### Example 3: Financial Statement Analysis
+**Parameters:**
+- `selectors`: Custom CSS selectors for extracting information
+
+#### Core Methods
 
 ```python
-from codal_scraper import CodalClient, DataProcessor
-import pandas as pd
+# Scrape from URL list
+await scraper.scrape_urls(urls: Union[List[str], pd.DataFrame]) -> pd.DataFrame
 
-# Get financial statements
-client = CodalClient()
-statements = client.search_financial_statements(
-    from_date="1401/01/01",
-    to_date="1402/12/29",
-    period_length=12,  # Annual
-    audited_only=True
-)
+# Scrape from CSV file
+await scraper.scrape_from_csv(csv_path: str) -> pd.DataFrame
 
-# Process data
-processor = DataProcessor(statements)
-processor.add_letter_descriptions()
+# Export to Excel
+scraper.export_to_excel(df: pd.DataFrame = None, file_path: str = 'board_members.xlsx', include_summary: bool = True) -> None
 
-# Analyze by company
+# Export to CSV
+scraper.export_to_csv(df: pd.DataFrame = None, file_path: str = 'board_members.csv') -> None
+
+# Create network visualization
+scraper.visualize_network(output_file: str = 'board_network.html') -> None
+```
+
+## Advanced Usage
+
+### Complex Query Building
+
+```python
+# Build sophisticated queries using method chaining
+results = (client
+    .set_letter_code('ن-45')                    # Board changes
+    .set_company_type('1')                      # Main exchange
+    .set_date_range("1400/01/01", "1403/12/29")
+    .set_entity_type(include_childs=False, include_mains=True)
+    .set_audit_status(audited=True, not_audited=False)
+    .set_consolidation_status(consolidated=True, not_consolidated=False)
+    .fetch_all_pages(max_pages=50))
+```
+
+### Batch Processing
+
+```python
+# Process multiple symbols
+symbols = ['فولاد', 'فملی', 'شبندر']
+all_data = []
+
+for symbol in symbols:
+    data = client.search_by_symbol(symbol, "1402/01/01", "1402/12/29")
+    all_data.extend(data)
+
+# Combine and process
+processor = DataProcessor(all_data)
+processor.remove_duplicates()
+processor.to_excel("combined_data.xlsx")
+```
+
+### Custom Data Processing
+
+```python
+# Load existing data and apply custom filters
+processor = DataProcessor.from_excel_file("existing_data.xlsx")
+
+# Apply complex filtering
 df = processor.df
-company_stats = df.groupby('symbol').agg({
-    'letter_code': 'count',
-    'publish_date': ['min', 'max']
-}).round(2)
+filtered = df[
+    (df['letter_code'] == 'ن-45') &
+    (df['symbol'].str.contains('فولاد')) &
+    (df['publish_date'] >= '1403-01-01')
+]
 
-print(company_stats)
-
-# Export results
-processor.to_excel("financial_analysis.xlsx")
+# Create new processor with filtered data
+new_processor = DataProcessor(filtered)
+new_processor.to_excel("filtered_data.xlsx")
 ```
 
-### Example 4: Network Analysis
+## Data Processing
+
+### Column Normalization
+
+The DataProcessor automatically:
+- Converts column names to snake_case
+- Normalizes Persian text fields
+- Handles Persian date formats
+- Processes datetime columns
+
+### Text Processing
+
+```python
+from codal_scraper.utils import normalize_persian_text, persian_to_english_digits
+
+# Normalize Persian text
+text = normalize_persian_text("متن فارسی")
+# Converts Arabic letters to Persian, removes zero-width characters
+
+# Convert Persian digits to English
+digits = persian_to_english_digits("۱۲۳۴۵")
+# Returns: "12345"
+```
+
+### Date Handling
+
+```python
+from codal_scraper.utils import gregorian_to_shamsi, shamsi_to_gregorian
+
+# Convert Gregorian to Persian
+persian_date = gregorian_to_shamsi("20240101")  # Returns: "1402/10/11"
+
+# Convert Persian to Gregorian
+gregorian_date = shamsi_to_gregorian("1402/10/11")  # Returns: "20240101"
+```
+
+## Async Web Scraping
+
+### Basic Async Scraping
 
 ```python
 import asyncio
 from codal_scraper import BoardMemberScraper
-import networkx as nx
 
-async def analyze_board_network():
+async def scrape_board_data():
     scraper = BoardMemberScraper()
     
-    # Scrape board data
-    df = await scraper.scrape_from_csv("data_temp.csv")
+    # URLs to scrape
+    urls = [
+        "https://codal.ir/Reports/Decision.aspx?LetterSerial=...",
+        "https://codal.ir/Reports/Decision.aspx?LetterSerial=..."
+    ]
     
-    # Analyze network
-    if scraper.network and scraper.network.number_of_nodes() > 0:
-        # Find most connected members
-        centrality = nx.degree_centrality(scraper.network)
-        top_members = sorted(centrality.items(), 
-                           key=lambda x: x[1], 
-                           reverse=True)[:10]
-        
-        print("Top 10 Most Connected Entities:")
-        for entity, score in top_members:
-            connections = scraper.network.degree(entity)
-            print(f"{entity}: {connections} connections")
-        
-        # Create visualization
-        scraper.visualize_network("network_analysis.html")
+    # Scrape data
+    df = await scraper.scrape_urls(urls)
+    
+    # Export results
+    scraper.export_to_excel(df, 'board_members.xlsx')
     
     return df
 
-# Run analysis
-asyncio.run(analyze_board_network())
+# Run the async function
+result = asyncio.run(scrape_board_data())
 ```
 
----
-
-## Board Member Scraping
-
-### Overview
-
-The board member scraper extracts detailed information from individual announcement pages, including:
-
-- Board member names and positions
-- National IDs and education
-- Previous vs. new members
-- CEO information
-- Independence status
-- Multiple position holdings
-
-### Scraped Fields
-
-| Field | Description | Example |
-|-------|-------------|---------|
-| company | Company symbol | "فولاد" |
-| new_member | New board member name | "علی محمدی" |
-| prev_member | Previous member | "حسن رضایی" |
-| position | Board position | "رئیس هیئت مدیره" |
-| national_id | National ID number | "1234567890" |
-| degree | Education degree | "کارشناسی ارشد" |
-| major | Field of study | "مدیریت مالی" |
-| is_independent | Independence status | True/False |
-| has_multiple_executive | Multiple exec roles | True/False |
-| assembly_date | Assembly date | "14030515" |
-| ceo_name | CEO name | "محمد احمدی" |
-
-### Performance Optimization
+### CSV-Based Workflow
 
 ```python
-# Optimize scraping with custom selectors
+async def csv_workflow():
+    # Step 1: Get URLs from API
+    client = CodalClient()
+    board_changes = client.search_board_changes(
+        from_date="1403/01/01",
+        to_date="1403/06/30",
+        company_type='1'
+    )
+    
+    # Step 2: Save URLs to CSV
+    client.save_urls_to_csv(board_changes, 'board_urls.csv')
+    
+    # Step 3: Scrape detailed information
+    scraper = BoardMemberScraper()
+    detailed_data = await scraper.scrape_from_csv('board_urls.csv')
+    
+    # Step 4: Export and analyze
+    scraper.export_to_excel(detailed_data, 'detailed_board_data.xlsx')
+    
+    # Create network visualization
+    if not detailed_data.empty:
+        scraper.visualize_network('board_network.html')
+    
+    return detailed_data
+```
+
+### Custom Selectors
+
+```python
+# Custom CSS selectors for different page layouts
 custom_selectors = {
-    'table': '#dgAssemblyBoardMember > tbody tr:not(.GridHeader)',
-    'company': '#lblCompany',
-    # Add more custom selectors
+    'table': '.custom-board-table tr',
+    'company': '.company-name',
+    'ceo_name': '.ceo-info',
+    # ... other selectors
 }
 
 scraper = BoardMemberScraper(selectors=custom_selectors)
 ```
 
-### Error Handling
+## Configuration
+
+### Logging Configuration
 
 ```python
-# The scraper tracks failed URLs
-if scraper.failed_urls:
-    print(f"Failed to scrape {len(scraper.failed_urls)} URLs:")
-    for url in scraper.failed_urls:
-        print(f"  - {url}")
-    
-    # Save failed URLs for retry
-    with open("failed_urls.txt", "w") as f:
-        f.write("\n".join(scraper.failed_urls))
-```
+import logging
 
----
-
-## Data Processing
-
-### Filtering Operations
-
-```python
-processor = DataProcessor(data)
-
-# Chain multiple filters
-processor = (processor
-    .filter_by_letter_code("ن-45")
-    .filter_by_date_range("1402/01/01", "1403/01/01")
-    .filter_by_symbols(["فولاد", "فملی"])
-    .remove_duplicates()
-    .sort_by("publish_date", ascending=False))
-```
-
-### Aggregation
-
-```python
-# Built-in aggregation
-aggregated = processor.aggregate_by_symbol_year()
-
-# Custom aggregation using pandas
-df = processor.df
-custom_agg = df.groupby(['symbol', 'letter_code']).agg({
-    'tracing_no': 'count',
-    'publish_date': ['min', 'max']
-}).reset_index()
-```
-
-### Data Cleaning
-
-```python
-# Normalize Persian text
-processor.df['clean_text'] = processor.df['title'].apply(
-    lambda x: normalize_persian_text(x)
+# Configure logging level
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Convert Persian dates
-from codal_scraper.utils import shamsi_to_gregorian
-processor.df['gregorian_date'] = processor.df['persian_date'].apply(
-    shamsi_to_gregorian
-)
+# Or configure specific logger
+logger = logging.getLogger('codal_scraper')
+logger.setLevel(logging.DEBUG)
 ```
 
----
-
-## Testing
-
-### Running Tests
-
-```bash
-# Quick functionality test
-python test_quick.py
-
-# Integration test
-python test_integration.py
-
-# Board scraper test
-python test_board_scraper.py
-
-# CSV workflow test
-python test_board_scraper.py --csv
-
-# All tests
-python test_board_scraper.py --both
-```
-
-### Test Coverage
-
-| Component | Coverage | Status |
-|-----------|----------|---------|
-| API Client | 95% | ✅ Pass |
-| Board Scraper | 85% | ✅ Pass |
-| Data Processor | 90% | ✅ Pass |
-| Validators | 100% | ✅ Pass |
-| Utils | 88% | ✅ Pass |
-
-### Writing Custom Tests
+### Custom Headers
 
 ```python
-import unittest
-from codal_scraper import CodalClient
+from codal_scraper.constants import DEFAULT_HEADERS
 
-class TestCodalClient(unittest.TestCase):
-    def setUp(self):
-        self.client = CodalClient()
-    
-    def test_symbol_search(self):
-        results = self.client.search_by_symbol("فولاد")
-        self.assertIsNotNone(results)
-        self.assertIsInstance(results, list)
-    
-    def test_date_validation(self):
-        with self.assertRaises(ValidationError):
-            self.client.set_date_range("invalid_date")
-
-if __name__ == "__main__":
-    unittest.main()
+# Modify default headers
+client.session.headers.update({
+    'User-Agent': 'Custom User Agent',
+    'Accept-Language': 'fa-IR,fa;q=0.9,en-US;q=0.8'
+})
 ```
 
----
+### Timeout and Retry Configuration
+
+```python
+# Custom timeout and retry settings
+client = CodalClient(retry_count=5, timeout=60)
+
+# Or modify after initialization
+client.retry_count = 5
+client.timeout = 60
+```
+
+## Error Handling
+
+### Validation Errors
+
+```python
+from codal_scraper.validators import ValidationError
+
+try:
+    client.set_symbol("invalid@symbol")
+except ValidationError as e:
+    print(f"Validation error: {e}")
+```
+
+### Request Errors
+
+```python
+try:
+    data = client.fetch_page(1)
+    if data is None:
+        print("Failed to fetch data")
+except Exception as e:
+    print(f"Request failed: {e}")
+```
+
+### Async Scraping Errors
+
+```python
+async def safe_scraping():
+    scraper = BoardMemberScraper()
+    
+    try:
+        df = await scraper.scrape_urls(urls)
+        if df.empty:
+            print("No data scraped")
+        else:
+            print(f"Successfully scraped {len(df)} records")
+    except Exception as e:
+        print(f"Scraping failed: {e}")
+        print(f"Failed URLs: {scraper.failed_urls}")
+```
+
+## Performance Optimization
+
+### Caching Strategies
+
+```python
+import json
+from pathlib import Path
+
+def cache_api_data(data, filename):
+    """Cache API data to avoid repeated requests"""
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_cached_data(filename):
+    """Load cached API data"""
+    if Path(filename).exists():
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return None
+
+# Usage
+cache_file = 'board_changes_cache.json'
+cached_data = load_cached_data(cache_file)
+
+if cached_data is None:
+    data = client.search_board_changes("1403/01/01", "1403/12/29")
+    cache_api_data(data, cache_file)
+else:
+    data = cached_data
+```
+
+### Batch Processing
+
+```python
+def process_symbols_in_batches(symbols, batch_size=10):
+    """Process symbols in batches to avoid overwhelming the API"""
+    all_data = []
+    
+    for i in range(0, len(symbols), batch_size):
+        batch = symbols[i:i + batch_size]
+        print(f"Processing batch {i//batch_size + 1}: {batch}")
+        
+        for symbol in batch:
+            try:
+                data = client.search_by_symbol(symbol, "1403/01/01", "1403/06/30")
+                all_data.extend(data)
+                time.sleep(1)  # Rate limiting
+            except Exception as e:
+                print(f"Failed to process {symbol}: {e}")
+    
+    return all_data
+```
+
+### Memory Optimization
+
+```python
+# For large datasets, use Parquet format
+processor.to_parquet("large_dataset.parquet")
+
+# Load only when needed
+def process_large_dataset():
+    df = pd.read_parquet("large_dataset.parquet")
+    # Process in chunks
+    for chunk in pd.read_parquet("large_dataset.parquet", chunksize=1000):
+        # Process chunk
+        pass
+```
+
+## Examples
+
+### Complete Board Analysis Workflow
+
+```python
+import asyncio
+from pathlib import Path
+from codal_scraper import CodalClient, DataProcessor, BoardMemberScraper
+
+async def complete_board_analysis():
+    """Complete workflow for board member analysis"""
+    
+    # Step 1: Fetch board changes from API
+    print("📊 Fetching board changes from API...")
+    client = CodalClient()
+    board_changes = client.search_board_changes(
+        from_date="1403/01/01",
+        to_date="1403/06/30",
+        company_type='1'
+    )
+    
+    # Step 2: Process API data
+    print("🔄 Processing API data...")
+    processor = DataProcessor(board_changes)
+    processor.add_letter_descriptions()
+    
+    # Get statistics
+    stats = processor.get_summary_stats()
+    print(f"Found {stats['total_records']} board changes")
+    print(f"Unique companies: {stats['unique_symbols']}")
+    
+    # Step 3: Export API data
+    print("💾 Exporting API data...")
+    processor.to_excel("api_board_changes.xlsx")
+    
+    # Step 4: Extract URLs for detailed scraping
+    print("🔗 Extracting URLs...")
+    urls = client.extract_letter_urls(board_changes[:10])  # Limit for demo
+    print(f"Extracted {len(urls)} URLs")
+    
+    # Step 5: Scrape detailed board information
+    print("🕷️ Scraping detailed board information...")
+    scraper = BoardMemberScraper()
+    detailed_data = await scraper.scrape_urls(urls)
+    
+    if not detailed_data.empty:
+        print(f"Scraped {len(detailed_data)} detailed records")
+        
+        # Step 6: Export detailed data
+        print("💾 Exporting detailed data...")
+        scraper.export_to_excel(detailed_data, "detailed_board_data.xlsx")
+        
+        # Step 7: Create network visualization
+        print("🕸️ Creating network visualization...")
+        scraper.visualize_network("board_network.html")
+        
+        # Step 8: Analysis
+        print("📈 Analysis:")
+        print(f"  - Unique companies: {detailed_data['company'].nunique()}")
+        print(f"  - Unique board members: {detailed_data['new_member'].nunique()}")
+        
+        if 'is_independent' in detailed_data.columns:
+            independent_pct = (detailed_data['is_independent'].sum() / len(detailed_data)) * 100
+            print(f"  - Independent members: {independent_pct:.1f}%")
+    
+    print("✅ Analysis complete!")
+    return detailed_data
+
+# Run the analysis
+result = asyncio.run(complete_board_analysis())
+```
+
+### Financial Statement Analysis
+
+```python
+def analyze_financial_statements():
+    """Analyze financial statements over multiple years"""
+    
+    client = CodalClient()
+    all_statements = []
+    
+    # Fetch statements for multiple years
+    years = [1401, 1402, 1403]
+    
+    for year in years:
+        print(f"Fetching statements for year {year}...")
+        statements = client.search_financial_statements(
+            from_date=f"{year}/01/01",
+            to_date=f"{year}/12/29",
+            period_length=12,  # Annual
+            audited_only=True
+        )
+        all_statements.extend(statements)
+    
+    # Process all statements
+    processor = DataProcessor(all_statements)
+    processor.add_letter_descriptions()
+    
+    # Aggregate by symbol and year
+    aggregated = processor.aggregate_by_symbol_year()
+    
+    # Export results
+    processor.to_excel("financial_statements.xlsx")
+    aggregated.to_excel("financial_aggregated.xlsx", index=False)
+    
+    print(f"Processed {len(all_statements)} financial statements")
+    print(f"Aggregated to {len(aggregated)} symbol-year observations")
+    
+    return processor, aggregated
+
+# Run the analysis
+processor, aggregated = analyze_financial_statements()
+```
+
+### Custom Query Builder
+
+```python
+def build_custom_queries():
+    """Demonstrate custom query building"""
+    
+    client = CodalClient()
+    
+    # Query 1: Board changes for specific companies
+    query1 = (client
+        .set_letter_code('ن-45')
+        .set_company_type('1')
+        .set_date_range("1403/01/01", "1403/06/30")
+        .fetch_all_pages(max_pages=5))
+    
+    # Query 2: Financial statements for specific period
+    query2 = (client
+        .set_letter_code('ن-10')
+        .set_period_length(12)
+        .set_audit_status(audited=True, not_audited=False)
+        .set_date_range("1402/01/01", "1402/12/29")
+        .fetch_all_pages(max_pages=10))
+    
+    # Query 3: All announcements for specific symbol
+    query3 = (client
+        .set_symbol('فولاد')
+        .set_date_range("1403/01/01", "1403/06/30")
+        .fetch_all_pages())
+    
+    # Process and export each query
+    results = [
+        ("Board Changes", query1),
+        ("Financial Statements", query2),
+        ("Foulad Announcements", query3)
+    ]
+    
+    for name, data in results:
+        if data:
+            processor = DataProcessor(data)
+            processor.add_letter_descriptions()
+            filename = f"{name.lower().replace(' ', '_')}.xlsx"
+            processor.to_excel(filename)
+            print(f"Exported {len(data)} records to {filename}")
+    
+    return results
+
+# Run the custom queries
+results = build_custom_queries()
+```
 
 ## Troubleshooting
 
 ### Common Issues and Solutions
 
-#### 1. Import Error: No module named 'crawlee'
+#### 1. Import Errors
 
-**Solution:**
+**Problem**: `ModuleNotFoundError: No module named 'codal_scraper'`
+
+**Solutions**:
 ```bash
-pip install crawlee[playwright]
+# For development installation
+pip install -e .
+
+# For regular installation
+pip install codal-scraper
+
+# Check if package is installed
+pip list | grep codal-scraper
+```
+
+#### 2. Async Dependencies Missing
+
+**Problem**: `ImportError: No module named 'crawlee'`
+
+**Solution**:
+```bash
+pip install codal-scraper[async]
+```
+
+#### 3. Playwright Browser Issues
+
+**Problem**: `Error: Browser not found` or `playwright._impl._api_types.Error: Browser not found`
+
+**Solutions**:
+```bash
+# Install Playwright browsers
 playwright install chromium
+
+# Install all browsers
+playwright install
+
+# For Windows, you might need to run as administrator
 ```
 
-#### 2. Timeout errors during scraping
+#### 4. Persian Text Display Issues
 
-**Solution:**
+**Problem**: Persian text appears as question marks or boxes
+
+**Solutions**:
+- Ensure your terminal supports UTF-8
+- Use a Unicode-compatible font
+- Set environment variable: `PYTHONIOENCODING=utf-8`
+
+#### 5. Date Format Issues
+
+**Problem**: Date validation errors
+
+**Solutions**:
 ```python
-# Increase timeout
-from datetime import timedelta
-scraper = BoardMemberScraper()
-scraper.crawler = PlaywrightCrawler(
-    request_handler_timeout=timedelta(seconds=120)
-)
+# Use Persian calendar dates
+client.set_date_range("1403/01/01", "1403/12/29")  # ✅ Correct
+
+# Not Gregorian dates
+client.set_date_range("2024/01/01", "2024/12/29")  # ❌ Incorrect
 ```
 
-#### 3. Persian text encoding issues
+#### 6. Rate Limiting Issues
 
-**Solution:**
+**Problem**: Too many requests or timeouts
+
+**Solutions**:
 ```python
-# Use UTF-8 encoding
-processor.to_csv("output.csv", encoding='utf-8-sig')
-```
+# Increase timeout and retry count
+client = CodalClient(retry_count=5, timeout=60)
 
-#### 4. API rate limiting
-
-**Solution:**
-```python
-# Add delay between requests
+# Add delays between requests
 import time
-client = CodalClient()
-for page in range(1, 10):
-    data = client.fetch_page(page)
-    time.sleep(1)  # 1 second delay
+time.sleep(2)  # 2 second delay
+
+# Use max_pages to limit requests
+data = client.fetch_all_pages(max_pages=5)
 ```
 
-#### 5. Memory issues with large datasets
+#### 7. Memory Issues with Large Datasets
 
-**Solution:**
+**Problem**: Out of memory when processing large datasets
+
+**Solutions**:
 ```python
-# Use Parquet format
+# Use Parquet format instead of Excel
 processor.to_parquet("large_data.parquet")
 
 # Process in chunks
-for chunk in pd.read_csv("large_file.csv", chunksize=1000):
-    process_chunk(chunk)
+for chunk in pd.read_parquet("large_data.parquet", chunksize=1000):
+    # Process each chunk
+    pass
+
+# Use data types to reduce memory usage
+df = df.astype({'column': 'category'})
+```
+
+#### 8. Network Issues
+
+**Problem**: Connection timeouts or network errors
+
+**Solutions**:
+```python
+# Increase timeout
+client = CodalClient(timeout=120)
+
+# Use proxy if needed
+client.session.proxies = {
+    'http': 'http://proxy:port',
+    'https': 'https://proxy:port'
+}
+
+# Check network connectivity
+import requests
+try:
+    response = requests.get("https://codal.ir", timeout=10)
+    print("Network connectivity OK")
+except:
+    print("Network connectivity issues")
 ```
 
 ### Debug Mode
+
+Enable debug mode for detailed logging:
 
 ```python
 import logging
 
 # Enable debug logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.DEBUG)
 
-# Now all operations will show debug info
-client = CodalClient()
+# Or enable for specific components
+logging.getLogger('codal_scraper').setLevel(logging.DEBUG)
+logging.getLogger('codal_scraper.client').setLevel(logging.DEBUG)
 ```
 
----
+### Performance Monitoring
 
-## Best Practices
-
-### 1. Rate Limiting
+Monitor performance and identify bottlenecks:
 
 ```python
-# Respect API limits
 import time
+import psutil
 
-def fetch_with_delay(client, pages, delay=0.5):
-    results = []
-    for page in pages:
-        data = client.fetch_page(page)
-        results.extend(data)
-        time.sleep(delay)
-    return results
-```
+def monitor_performance(func):
+    """Decorator to monitor function performance"""
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        
+        result = func(*args, **kwargs)
+        
+        end_time = time.time()
+        end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        
+        print(f"Function: {func.__name__}")
+        print(f"Execution time: {end_time - start_time:.2f} seconds")
+        print(f"Memory usage: {end_memory - start_memory:.2f} MB")
+        
+        return result
+    return wrapper
 
-### 2. Error Recovery
+# Usage
+@monitor_performance
+def fetch_large_dataset():
+    client = CodalClient()
+    return client.fetch_all_pages(max_pages=20)
 
-```python
-# Implement retry logic
-async def scrape_with_retry(scraper, urls, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            df = await scraper.scrape_urls(urls)
-            if not df.empty:
-                return df
-        except Exception as e:
-            print(f"Attempt {attempt + 1} failed: {e}")
-            if attempt == max_retries - 1:
-                raise
-    return pd.DataFrame()
-```
-
-### 3. Data Validation
-
-```python
-# Validate data before processing
-def validate_data(df):
-    required_columns = ['symbol', 'publish_date', 'letter_code']
-    missing = [col for col in required_columns if col not in df.columns]
-    if missing:
-        raise ValueError(f"Missing columns: {missing}")
-    
-    # Check for nulls
-    null_counts = df[required_columns].isnull().sum()
-    if null_counts.any():
-        print(f"Warning: Null values found:\n{null_counts}")
-```
-
-### 4. Memory Management
-
-```python
-# Clear memory after large operations
-import gc
-
-def process_large_dataset(data):
-    processor = DataProcessor(data)
-    result = processor.aggregate_by_symbol_year()
-    
-    # Clear original data
-    del processor
-    gc.collect()
-    
-    return result
-```
-
-### 5. Logging Strategy
-
-```python
-# Structured logging
-import logging
-from datetime import datetime
-
-def setup_logging(name="codal_scraper"):
-    logger = logging.getLogger(name)
-    
-    # File handler
-    fh = logging.FileHandler(f'codal_{datetime.now():%Y%m%d}.log')
-    fh.setLevel(logging.DEBUG)
-    
-    # Console handler
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    
-    # Formatter
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-    
-    return logger
+data = fetch_large_dataset()
 ```
 
 ---
 
-## FAQ
-
-### Q1: How do I handle Persian calendar dates?
-
-**A:** The package handles Persian dates automatically. Use format "YYYY/MM/DD":
-```python
-client.set_date_range("1403/01/01", "1403/12/29")
-```
-
-### Q2: Can I scrape without installing Playwright?
-
-**A:** You can use the API client without Playwright, but board member scraping requires it:
-```python
-# This works without Playwright
-client = CodalClient()
-data = client.search_board_changes("1403/01/01", "1403/06/30")
-
-# This requires Playwright
-scraper = BoardMemberScraper()  # Needs Playwright
-```
-
-### Q3: How do I export data with Persian text to Excel?
-
-**A:** The package handles Persian text automatically:
-```python
-processor.to_excel("persian_data.xlsx")  # Works with Persian text
-```
-
-### Q4: What's the difference between letter codes?
-
-**A:** Common letter codes:
-- ن-10: Financial statements
-- ن-30: Board decisions  
-- ن-45: Board of directors changes
-- ن-41: Assembly invitations
-- ن-56: Capital increase
-
-### Q5: How can I speed up scraping?
-
-**A:** Several optimization options:
-```python
-# 1. Limit pages
-client.fetch_all_pages(max_pages=10)
-
-# 2. Use Parquet for faster I/O
-processor.to_parquet("data.parquet")
-
-# 3. Process in parallel (for API)
-from concurrent.futures import ThreadPoolExecutor
-
-with ThreadPoolExecutor(max_workers=5) as executor:
-    results = executor.map(client.fetch_page, range(1, 11))
-```
-
-### Q6: How do I customize the network visualization?
-
-**A:** Modify the visualization parameters:
-```python
-from pyvis.network import Network
-
-net = Network(height='750px', width='100%', 
-              bgcolor='#222222', font_color='white')
-net.barnes_hut(gravity=-80000, central_gravity=0.3,
-               spring_length=250, spring_strength=0.001)
-```
-
-### Q7: Can I use this with a database?
-
-**A:** Yes, export to database:
-```python
-import sqlalchemy
-
-# Create engine
-engine = sqlalchemy.create_engine('sqlite:///codal.db')
-
-# Export DataFrame to SQL
-df = processor.df
-df.to_sql('board_changes', engine, if_exists='replace', index=False)
-```
-
----
-
-## Support and Contact
-
-For issues, questions, or contributions:
-
-1. Check this documentation
-2. Review example scripts
-3. Run test scripts for verification
-4. Check troubleshooting section
-
----
-
-## License
-
-This project is licensed under the MIT License.
-
-## Disclaimer
-
-This tool is for educational and research purposes. Please respect Codal.ir's terms of service and rate limits.
-
----
-
-*Last Updated: October 2024*
-*Version: 1.0.0*
+This documentation provides comprehensive guidance for using the Codal Scraper package. For additional support, please refer to the GitHub repository or create an issue.
