@@ -9,7 +9,7 @@ A comprehensive Python package for scraping and analyzing data from Codal.ir, th
 - **🔄 Fluent API Interface**: Chainable methods for building complex queries
 - **📈 Data Processing**: Built-in processing and normalization for Persian text
 - **💾 Multiple Export Formats**: Excel, CSV, JSON, and Parquet support
-- **🕸️ Network Visualization**: Interactive board member network graphs
+- **🕸️ Network Visualization**: Interactive board member network graphs( :construction: Under Construction)
 - **✅ Input Validation**: Comprehensive validation for all parameters
 - **🗓️ Persian Calendar Support**: Native support for Shamsi (Persian) dates
 - **⚡ Retry Logic**: Automatic retry with exponential backoff
@@ -47,7 +47,7 @@ pip install codal-scraper[all]
 ### Development Installation
 
 ```bash
-git clone https://github.com/yourusername/codal-scraper.git
+git clone https://github.com/netecoder/codal_scraper.git
 cd codal-scraper
 pip install -e .
 ```
