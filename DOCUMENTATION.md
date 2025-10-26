@@ -198,6 +198,16 @@ client.extract_letter_urls(letters: List[Dict]) -> List[str]
 # Save URLs to CSV
 client.save_urls_to_csv(letters: List[Dict], file_path: str = 'data_temp.csv') -> None
 
+# Download Excel files from financial statements
+client.download_financial_excel_files(
+    from_date: str,
+    to_date: str,
+    period_length: int = 12,
+    audited_only: bool = True,
+    output_dir: Union[str, Path] = "financial_excel",
+    max_files: int = None
+) -> List[str]
+
 # Reset all parameters
 client.reset_params() -> None
 ```
@@ -458,6 +468,70 @@ custom_selectors = {
 }
 
 scraper = BoardMemberScraper(selectors=custom_selectors)
+```
+
+## Downloading Excel Files from Financial Statements
+
+### Basic Excel Download
+
+```python
+from codal_scraper import CodalClient
+
+client = CodalClient()
+
+# Download Excel files from financial statements
+downloaded_files = client.download_financial_excel_files(
+    from_date="1401/01/01",
+    to_date="1402/12/29",
+    period_length=12,      # Annual reports
+    audited_only=True,     # Only audited statements
+    output_dir="financial_excel",
+    max_files=50           # Limit to 50 files
+)
+
+print(f"Downloaded {len(downloaded_files)} Excel files")
+```
+
+### Advanced Excel Download Workflow
+
+```python
+def download_and_analyze_financial_excel():
+    """Download Excel files and analyze them"""
+    
+    client = CodalClient()
+    
+    # Step 1: Download Excel files
+    downloaded_files = client.download_financial_excel_files(
+        from_date="1401/01/01",
+        to_date="1402/12/29",
+        period_length=12,
+        audited_only=True,
+        output_dir="financial_excel",
+        max_files=10  # Limit for testing
+    )
+    
+    # Step 2: Load and analyze the Excel files
+    import pandas as pd
+    
+    all_data = []
+    for file_path in downloaded_files:
+        try:
+            df = pd.read_excel(file_path)
+            all_data.append(df)
+            print(f"Loaded: {file_path} ({len(df)} rows)")
+        except Exception as e:
+            print(f"Failed to load {file_path}: {e}")
+    
+    # Step 3: Combine and analyze
+    if all_data:
+        combined_df = pd.concat(all_data, ignore_index=True)
+        print(f"Total rows: {len(combined_df)}")
+        print(f"Columns: {list(combined_df.columns)}")
+    
+    return downloaded_files
+
+# Run the workflow
+files = download_and_analyze_financial_excel()
 ```
 
 ## Configuration

@@ -140,6 +140,22 @@ statements = client.search_financial_statements(
 )
 ```
 
+### 2.5. Download Excel Files from Financial Statements
+
+```python
+# Download all Excel files from financial statement announcements
+downloaded_files = client.download_financial_excel_files(
+    from_date="1401/01/01",
+    to_date="1402/12/29",
+    period_length=12,      # Annual reports
+    audited_only=True,     # Only audited statements
+    output_dir="financial_excel",  # Output directory
+    max_files=50           # Limit number of files (None for all)
+)
+
+print(f"Downloaded {len(downloaded_files)} Excel files")
+```
+
 ### 3. Custom Query Builder
 
 ```python

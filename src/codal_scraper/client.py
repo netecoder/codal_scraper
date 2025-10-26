@@ -4,14 +4,17 @@ Main client for interacting with Codal API
 
 import json
 import logging
+import re
 import time
 import urllib.parse as urlparse
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
 from .constants import (
@@ -554,3 +557,207 @@ class CodalClient:
                 
         except Exception as e:
             logger.error(f"Failed to save URLs to CSV: {e}")
+    
+    def _download_file(self, url: str, file_path: Path) -> bool:
+        """
+        Download a file from URL
+        
+        Args:
+            url: File URL
+            file_path: Local file path to save
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            response = self.session.get(url, timeout=self.timeout)
+            response.raise_for_status()
+            
+            # Save file
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+            
+            logger.info(f"Downloaded: {file_path.name}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to download {url}: {e}")
+            return False
+    
+    def _extract_excel_links(self, html_content: str, base_url: str = "https://codal.ir") -> List[Dict]:
+        """
+        Extract Excel file links from HTML content
+        
+        Args:
+            html_content: HTML content from announcement page
+            base_url: Base URL for resolving relative links
+        
+        Returns:
+            List of dictionaries with file info (url, filename)
+        """
+        excel_links = []
+        
+        try:
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Find all links to Excel files
+            # Look for .xlsx, .xls, and Excel-related links
+            patterns = [r'\.xlsx', r'\.xls', r'excel', r'Excel']
+            
+            for link in soup.find_all('a', href=True):
+                href = link.get('href', '')
+                text = link.get_text(strip=True)
+                
+                # Check if link is an Excel file
+                for pattern in patterns:
+                    if re.search(pattern, href, re.IGNORECASE) or re.search(pattern, text, re.IGNORECASE):
+                        # Resolve relative URLs
+                        if href.startswith('/'):
+                            full_url = f"{base_url}{href}"
+                        elif not href.startswith('http'):
+                            full_url = f"{base_url}/{href}"
+                        else:
+                            full_url = href
+                        
+                        # Extract filename
+                        filename = href.split('/')[-1]
+                        
+                        # Use link text as alternative filename if available
+                        if text and len(text) < 200:
+                            filename = text if text else filename
+                        
+                        excel_links.append({
+                            'url': full_url,
+                            'filename': filename,
+                            'text': text
+                        })
+                        break
+            
+            # Also check for direct file references in iframes or embeds
+            for iframe in soup.find_all(['iframe', 'embed']):
+                src = iframe.get('src', '')
+                if re.search(r'\.xlsx|\.xls', src, re.IGNORECASE):
+                    if src.startswith('/'):
+                        full_url = f"{base_url}{src}"
+                    elif not src.startswith('http'):
+                        full_url = f"{base_url}/{src}"
+                    else:
+                        full_url = src
+                    
+                    filename = src.split('/')[-1]
+                    excel_links.append({
+                        'url': full_url,
+                        'filename': filename,
+                        'text': ''
+                    })
+        
+        except Exception as e:
+            logger.error(f"Failed to extract Excel links: {e}")
+        
+        return excel_links
+    
+    def download_financial_excel_files(self,
+                                      from_date: str,
+                                      to_date: str,
+                                      period_length: int = 12,
+                                      audited_only: bool = True,
+                                      output_dir: Union[str, Path] = "financial_excel",
+                                      max_files: int = None) -> List[str]:
+        """
+        Download all Excel files from financial statement announcements
+        
+        Args:
+            from_date: Start date for financial statements
+            to_date: End date for financial statements
+            period_length: Period length in months (default: 12 for annual)
+            audited_only: If True, only download from audited statements
+            output_dir: Directory to save downloaded files
+            max_files: Maximum number of files to download (None for all)
+        
+        Returns:
+            List of successfully downloaded file paths
+        """
+        # Create output directory
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        
+        # Search for financial statements
+        logger.info("Searching for financial statements...")
+        announcements = self.search_financial_statements(
+            from_date=from_date,
+            to_date=to_date,
+            period_length=period_length,
+            audited_only=audited_only
+        )
+        
+        logger.info(f"Found {len(announcements)} financial statement announcements")
+        
+        downloaded_files = []
+        file_count = 0
+        
+        for i, announcement in enumerate(announcements):
+            try:
+                # Skip if max files reached
+                if max_files and file_count >= max_files:
+                    logger.info(f"Reached maximum file limit ({max_files})")
+                    break
+                
+                # Get announcement URL
+                letter_url = None
+                if 'Url' in announcement and announcement['Url']:
+                    letter_url = announcement['Url']
+                    if not letter_url.startswith('http'):
+                        letter_url = f"https://codal.ir/{letter_url.lstrip('/')}"
+                elif 'TracingNo' in announcement and announcement['TracingNo']:
+                    letter_url = f"https://codal.ir/Reports/Decision.aspx?LetterSerial={announcement['TracingNo']}"
+                
+                if not letter_url:
+                    logger.warning("No URL found for announcement")
+                    continue
+                
+                # Fetch announcement page
+                logger.info(f"[{i+1}/{len(announcements)}] Fetching: {letter_url}")
+                response = self.session.get(letter_url, timeout=self.timeout)
+                response.raise_for_status()
+                
+                # Extract Excel file links
+                excel_links = self._extract_excel_links(response.text)
+                
+                if not excel_links:
+                    logger.info(f"No Excel files found in announcement")
+                    continue
+                
+                # Download each Excel file
+                for link_info in excel_links:
+                    # Skip if max files reached
+                    if max_files and file_count >= max_files:
+                        break
+                    
+                    # Generate safe filename
+                    symbol = announcement.get('Symbol', 'Unknown')
+                    date = announcement.get('PublishDateTime', '').replace('/', '-')[:10]
+                    filename = f"{symbol}_{date}_{file_count + 1}_{link_info['filename']}"
+                    
+                    # Remove invalid characters from filename
+                    filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+                    
+                    file_path = output_path / filename
+                    
+                    # Download file
+                    if self._download_file(link_info['url'], file_path):
+                        downloaded_files.append(str(file_path))
+                        file_count += 1
+                    
+                    # Small delay between downloads
+                    time.sleep(0.5)
+                
+                # Delay between announcements
+                time.sleep(1)
+                
+            except Exception as e:
+                logger.error(f"Failed to process announcement: {e}")
+                continue
+        
+        logger.info(f"Successfully downloaded {len(downloaded_files)} Excel files to {output_path}")
+        return downloaded_files
