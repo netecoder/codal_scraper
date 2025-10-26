@@ -605,7 +605,10 @@ class CodalClient:
             # Look for .xlsx, .xls, and Excel-related links
             patterns = [r'\.xlsx', r'\.xls', r'excel', r'Excel']
             
-            for link in soup.find_all('a', href=True):
+            all_links = soup.find_all('a', href=True)
+            logger.debug(f"Found {len(all_links)} total links")
+            
+            for link in all_links:
                 href = link.get('href', '')
                 text = link.get_text(strip=True)
                 
@@ -632,6 +635,7 @@ class CodalClient:
                             'filename': filename,
                             'text': text
                         })
+                        logger.debug(f"Found Excel link: {full_url}")
                         break
             
             # Also check for direct file references in iframes or embeds
@@ -651,6 +655,7 @@ class CodalClient:
                         'filename': filename,
                         'text': ''
                     })
+                    logger.debug(f"Found Excel iframe: {full_url}")
         
         except Exception as e:
             logger.error(f"Failed to extract Excel links: {e}")
@@ -677,6 +682,11 @@ class CodalClient:
         
         Returns:
             List of successfully downloaded file paths
+        
+        Note:
+            The downloaded files are in Excel XML format (HTML) and will open
+            directly in Microsoft Excel. They may also be readable by pandas
+            using pd.read_html() or converted to proper .xlsx format.
         """
         # Create output directory
         output_path = Path(output_dir)
@@ -703,57 +713,84 @@ class CodalClient:
                     logger.info(f"Reached maximum file limit ({max_files})")
                     break
                 
-                # Get announcement URL
-                letter_url = None
-                if 'Url' in announcement and announcement['Url']:
-                    letter_url = announcement['Url']
-                    if not letter_url.startswith('http'):
-                        letter_url = f"https://codal.ir/{letter_url.lstrip('/')}"
-                elif 'TracingNo' in announcement and announcement['TracingNo']:
-                    letter_url = f"https://codal.ir/Reports/Decision.aspx?LetterSerial={announcement['TracingNo']}"
+                # Check if announcement has Excel files from API response
+                has_excel = announcement.get('has_excel', False) or announcement.get('HasExcel', False)
+                excel_url = announcement.get('excel_url', '') or announcement.get('ExcelUrl', '')
                 
-                if not letter_url:
-                    logger.warning("No URL found for announcement")
+                # Try to construct Excel URL from attachment URL if available
+                if not excel_url and not has_excel:
+                    # Check if there's an attachment URL that might contain Excel
+                    attachment_url = announcement.get('attachment_url', '') or announcement.get('AttachmentUrl', '')
+                    if attachment_url:
+                        # Try to fetch the attachment page to find Excel links
+                        if attachment_url.startswith('/'):
+                            full_attachment_url = f"https://codal.ir{attachment_url}"
+                        else:
+                            full_attachment_url = attachment_url
+                        
+                        logger.info(f"[{i+1}/{len(announcements)}] Checking attachment: {full_attachment_url}")
+                        response = self.session.get(full_attachment_url, timeout=self.timeout)
+                        response.raise_for_status()
+                        
+                        excel_links = self._extract_excel_links(response.text)
+                        
+                        # Download each Excel file found
+                        for link_info in excel_links:
+                            if max_files and file_count >= max_files:
+                                break
+                            
+                            symbol = announcement.get('Symbol', 'Unknown')
+                            date = announcement.get('PublishDateTime', '').replace('/', '-')[:10]
+                            filename = f"{symbol}_{date}_{file_count + 1}_{link_info['filename']}"
+                            filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+                            
+                            file_path = output_path / filename
+                            
+                            if self._download_file(link_info['url'], file_path):
+                                downloaded_files.append(str(file_path))
+                                file_count += 1
+                            
+                            time.sleep(0.5)
+                        
+                        time.sleep(1)
+                        continue
+                
+                # If has_excel is True but no excel_url, skip
+                if has_excel and not excel_url:
+                    logger.warning(f"Announcement has Excel flag but no URL")
                     continue
                 
-                # Fetch announcement page
-                logger.info(f"[{i+1}/{len(announcements)}] Fetching: {letter_url}")
-                response = self.session.get(letter_url, timeout=self.timeout)
-                response.raise_for_status()
-                
-                # Extract Excel file links
-                excel_links = self._extract_excel_links(response.text)
-                
-                if not excel_links:
-                    logger.info(f"No Excel files found in announcement")
+                # Skip if no Excel files
+                if not has_excel and not excel_url:
+                    logger.info(f"[{i+1}/{len(announcements)}] No Excel files (has_excel={has_excel})")
                     continue
                 
-                # Download each Excel file
-                for link_info in excel_links:
-                    # Skip if max files reached
-                    if max_files and file_count >= max_files:
-                        break
-                    
-                    # Generate safe filename
-                    symbol = announcement.get('Symbol', 'Unknown')
-                    date = announcement.get('PublishDateTime', '').replace('/', '-')[:10]
-                    filename = f"{symbol}_{date}_{file_count + 1}_{link_info['filename']}"
-                    
-                    # Remove invalid characters from filename
-                    filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-                    
-                    file_path = output_path / filename
-                    
-                    # Download file
-                    if self._download_file(link_info['url'], file_path):
-                        downloaded_files.append(str(file_path))
-                        file_count += 1
-                    
-                    # Small delay between downloads
-                    time.sleep(0.5)
+                # Construct full Excel URL
+                if excel_url:
+                    if excel_url.startswith('/'):
+                        full_excel_url = f"https://codal.ir{excel_url}"
+                    elif not excel_url.startswith('http'):
+                        full_excel_url = f"https://codal.ir/{excel_url}"
+                    else:
+                        full_excel_url = excel_url
+                else:
+                    continue
                 
-                # Delay between announcements
-                time.sleep(1)
+                # Generate filename
+                symbol = announcement.get('Symbol', 'Unknown')
+                date = announcement.get('PublishDateTime', '').replace('/', '-')[:10]
+                filename = f"{symbol}_{date}_{file_count + 1}.xls"
+                filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+                
+                file_path = output_path / filename
+                
+                # Download file
+                logger.info(f"[{i+1}/{len(announcements)}] Downloading Excel: {full_excel_url}")
+                if self._download_file(full_excel_url, file_path):
+                    downloaded_files.append(str(file_path))
+                    file_count += 1
+                
+                time.sleep(0.5)
                 
             except Exception as e:
                 logger.error(f"Failed to process announcement: {e}")
