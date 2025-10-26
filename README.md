@@ -363,17 +363,5 @@ This tool is for educational and research purposes. Please respect Codal.ir's te
 - **Issues**: [GitHub Issues](https://github.com/yourusername/codal-scraper/issues)
 - **Documentation**: [Full Documentation](DOCUMENTATION.md)
 - **Examples**: See the `examples/` directory
-
-## 🔄 Changelog
-
-### Version 1.0.0
-- ✅ Fixed import path issues
-- ✅ Fixed datetime_to_num function bugs
-- ✅ Improved date filtering for Persian dates
-- ✅ Fixed URL generation issues
-- ✅ Added comprehensive optional dependencies
-- ✅ Improved error handling and validation
-- ✅ Added extensive documentation and examples
-- 
 ---
 **Made with ❤️ for the Iranian financial data community**
