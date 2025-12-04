@@ -10,9 +10,10 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
-  { name = "Mohammad Mehdi Pakravan", email = "" }
+  { name = "Mohammad Mehdi Pakravan", email = "pakravanmohammad.eco@gmail.com
+" }
 ]
-keywords = ["codal", "iran", "stock-market", "finance", "scraper", "async", "playwright"]
+keywords = ["codal","tsetmc", "iran", "stock-market", "finance", "scraper", "async", "playwright"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.9",
@@ -47,9 +48,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/<your-username>/codal_scraper"
-Repository = "https://github.com/<your-username>/codal_scraper"
-Issues = "https://github.com/<your-username>/codal_scraper/issues"
+Homepage = "https://github.com/mohapak"
+Repository = "https://github.com/mohapak/codal_scraper"
+Issues = "https://github.com/mohapak/codal_scraper/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -19,7 +19,7 @@ The codebase is structured as a reusable package (`src/codal_scraper`) with exam
 ### From source (this repo)
 
 ```bash
-git clone https://github.com/<your-username>/codal_scraper.git
+git clone https://github.com/mohapak/codal_scraper.git
 cd codal_scraper
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -330,5 +330,7 @@ Update `pyproject.toml` and `setup.py` with your **GitHub URL**, **author email*
 ## License
 
 This project is licensed under the **MIT License**. See `LICENSE` for details.
+---
+Made with ❤️ for the Iranian financial community.
 
 
