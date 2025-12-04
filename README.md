@@ -284,8 +284,16 @@ except NetworkError as e:
 - `src/codal_scraper/` – main package
 - `examples/` – runnable scripts demonstrating sync, async and board‑scraper workflows
 - `tests/` – pytest tests for client, cache, processor, validators, utils
-- `output/` – example output files (Excel, CSV, JSON) created by sample scripts
-- `storage/` – Crawlee key‑value stores and request queues created during board scraping (can be safely removed/ignored)
+- `output/` – example output files (Excel, CSV, JSON) created by sample scripts (ignored in git)
+- `storage/` – Crawlee key‑value stores and request queues created during board scraping (ignored in git; can be safely removed)
+
+---
+
+## Additional documentation
+
+For a deeper, developer‑focused explanation of the architecture and advanced usage patterns, see:
+
+- `docs/USAGE.md` – detailed usage of `CodalClient`, `AsyncCodalClient`, `DataProcessor`, and `BoardMemberScraper`, plus examples of filtering, aggregation, board‑network analysis, and testing.
 
 ---
 
