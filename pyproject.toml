@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codal_scraper"
+version = "1.1.0"
+description = "High-level tools for scraping Codal.ir disclosures (Iranian stock market)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Mohammad Mehdi Pakravan", email = "" }
+]
+keywords = ["codal", "iran", "stock-market", "finance", "scraper", "async", "playwright"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Topic :: Office/Business :: Financial",
+  "Topic :: Software Development :: Libraries",
+]
+
+dependencies = [
+  "requests>=2.28.0",
+  "pandas>=1.5.0",
+  "beautifulsoup4>=4.11.0",
+  "jdatetime>=4.1.0",
+  "networkx>=3.0",
+  "openpyxl>=3.1.0",
+  "pyarrow>=14.0.0",
+  "aiohttp>=3.9.0",
+  "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+async = ["crawlee[playwright]>=0.2.0", "playwright>=1.40.0"]
+viz = ["pyvis>=0.3.0"]
+dev = [
+  "pytest>=7.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/<your-username>/codal_scraper"
+Repository = "https://github.com/<your-username>/codal_scraper"
+Issues = "https://github.com/<your-username>/codal_scraper/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+

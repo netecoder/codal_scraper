@@ -1,0 +1,24 @@
+Metadata-Version: 2.1
+Name: aiohutils
+Version: 0.11.0
+Summary: A small library to for aiohttp projects.
+Author-email: 5j9 <5j9@users.noreply.github.com>
+License: GNU General Public License v3 (GPLv3)
+Project-URL: Homepage, https://github.com/5j9/aiohutils
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.10
+Description-Content-Type: text/x-rst
+Requires-Dist: aiohttp[speedups]
+Provides-Extra: test
+Requires-Dist: pytest ; extra == 'test'
+Requires-Dist: pytest-asyncio ; extra == 'test'
+Requires-Dist: python-decouple ; extra == 'test'
+
+This library is not intended for direct public use.
+It is used as dependency of the following projects:
+
+* https://github.com/5j9/tsetmc
+* https://github.com/5j9/fipiran
+* https://github.com/5j9/iranetf
+* https://github.com/5j9/aggregator

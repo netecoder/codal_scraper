@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+recursive-include src *.py
+recursive-include examples *.py
+
+# Exclude large runtime artefacts
+prune output
+prune storage
+
+

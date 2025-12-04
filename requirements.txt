@@ -1,0 +1,30 @@
+# Core dependencies
+requests>=2.28.0
+pandas>=1.5.0
+beautifulsoup4>=4.11.0
+jdatetime>=4.1.0
+networkx>=3.0
+
+# Async scraping
+crawlee[playwright]>=0.2.0
+playwright>=1.40.0
+
+# Optional: Visualization
+pyvis>=0.3.0
+
+# Data export
+openpyxl>=3.1.0
+pyarrow>=14.0.0  # For parquet support
+
+# HTTP async
+aiohttp>=3.9.0
+
+# Progress bars
+tqdm>=4.65.0
+
+# Testing
+pytest>=7.4.0
+
+# Type checking (dev)
+# mypy>=1.5.0
+# types-requests>=2.28.0

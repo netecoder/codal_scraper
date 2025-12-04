@@ -1,0 +1,16 @@
+# % if cookiecutter.crawler_type == 'playwright-camoufox'
+camoufox[geoip]~=0.4.5
+# % set extras = ['playwright']
+# % else
+# % set extras = [cookiecutter.crawler_type]
+# % endif
+# % if cookiecutter.enable_apify_integration
+apify
+# % endif
+# % if cookiecutter.http_client == 'curl-impersonate'
+# % do extras.append('curl-impersonate')
+# % endif
+# % if cookiecutter.http_client == 'httpx'
+# % do extras.append('httpx')
+# % endif
+crawlee[{{ extras | join(',') }}]
